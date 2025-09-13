@@ -24,13 +24,12 @@ def check_possibility(attempt, answer):
       # TODO : check if the letter is in the word at the right place
       lettre_tried.append(attempt[i])
       res += 1
-    else : 
-      res -= 1
+
 
   return res
     
-def check_all(answer):
-  for word in list_of_word:
+def check_all(answer, list=list_of_word):
+  for word in list:
     result[word] += check_possibility(word, answer)
 
 def extract_to_csv(result):
@@ -59,24 +58,32 @@ def getList():
   new_list = []
   included = []
   excluded = []
-  for i in range(5):
-    included.extend(answer[str(i)][2])
-    excluded.extend(answer[str(i)][1])
+  mandatory = list(filter(lambda x: x != 0, map(lambda x: x[1][0], answer.items())))
+  ([included.extend(filter(lambda x: x not in mandatory, el)) for el in map(lambda x: x[1][2], answer.items())])
+  ([excluded.extend(filter(lambda x: x not in mandatory and x not in included, el)) for el in map(lambda x: x[1][1], answer.items())])
   for word in filter(lambda x: all(letter not in x for letter in excluded), list_of_word):
+    if not all(letter in word for letter in included):
+      continue
     new_list.append(word)
     for i in range(5):
       if answer[str(i)][0] != 0 and word[i] != answer[str(i)][0]:
         new_list.remove(word)
         break
-    
-  print(new_list)
+      elif word[i] in answer[str(i)][2]:
+        new_list.remove(word)
+        break
+      elif word[i] in answer[str(i)][1]:
+        new_list.remove(word)
+        break
+  
   return new_list
 
 
 get_from_file()
 
-for word in getList():
-  check_all(word)
+new_list = getList()
+for word in new_list:
+  check_all(word, new_list)
 print(sorted(result.items(), key=lambda x: x[1]))
 
 extract_to_csv(result)
